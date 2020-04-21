@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 
 import 'login_screen.dart';
@@ -52,12 +53,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                     height: 60.0,
                   ),
                 ),
-                Text(
-                  'Flash Chat',
-                  style: TextStyle(
+                TypewriterAnimatedTextKit(
+                  text: ['Flash Chat'],
+                  textStyle: TextStyle(
                     fontSize: 45.0,
                     fontWeight: FontWeight.w900,
                   ),
+                  totalRepeatCount: 1,
+                  speed: Duration(milliseconds: 500),
                 ),
               ],
             ),
