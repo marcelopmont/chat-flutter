@@ -29,7 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void getCurrentUser() async {
     try {
       user = await _auth.currentUser();
-    } catch(e) {
+    } catch (e) {
       print(e);
     }
   }
@@ -55,6 +55,23 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+              stream: firestore.collection('messages').snapshots(),
+              builder: (context, snapshot) {
+                List<Widget> messagesWidget = [];
+                if (snapshot.hasData) {
+                  final messages = snapshot.data.documents;
+                  for (var message in messages) {
+                    var text = message.data["message"];
+                    var sender = message.data["sender"];
+                    messagesWidget.add(Text("$text from $sender"));
+                  }
+                }
+                return Column(
+                  children: messagesWidget,
+                );
+              },
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
