@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/constants.dart';
@@ -14,11 +15,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final _auth = FirebaseAuth.instance;
   FirebaseUser user;
+  Firestore firestore;
+  String message;
 
   @override
   void initState() {
     super.initState();
 
+    firestore = Firestore.instance;
     getCurrentUser();
   }
 
@@ -59,14 +63,22 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: TextField(
                       onChanged: (value) {
-                        //Do something with the user input.
+                        message = value;
                       },
+                      controller: TextEditingController(text: message),
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
                   FlatButton(
                     onPressed: () {
-                      //Implement send functionality.
+                      firestore.collection('messages').document().setData({
+                        'sender': user.email,
+                        'message': message
+                      });
+
+                      setState(() {
+                        message = "";
+                      });
                     },
                     child: Text(
                       'Send',
