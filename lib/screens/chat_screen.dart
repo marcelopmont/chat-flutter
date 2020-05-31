@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/constants.dart';
 
-class ChatScreen extends StatefulWidget {
+Firestore firestore;
 
+class ChatScreen extends StatefulWidget {
   static const String id = 'chat_screen';
 
   @override
@@ -12,11 +13,11 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-
   final _auth = FirebaseAuth.instance;
   FirebaseUser user;
-  Firestore firestore;
   String message;
+
+  final messageTextController = TextEditingController();
 
   @override
   void initState() {
@@ -55,23 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            StreamBuilder<QuerySnapshot>(
-              stream: firestore.collection('messages').snapshots(),
-              builder: (context, snapshot) {
-                List<Widget> messagesWidget = [];
-                if (snapshot.hasData) {
-                  final messages = snapshot.data.documents;
-                  for (var message in messages) {
-                    var text = message.data["message"];
-                    var sender = message.data["sender"];
-                    messagesWidget.add(Text("$text from $sender"));
-                  }
-                }
-                return Column(
-                  children: messagesWidget,
-                );
-              },
-            ),
+            MessageStream(),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -82,17 +67,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       onChanged: (value) {
                         message = value;
                       },
-                      controller: TextEditingController(text: message),
+                      controller: messageTextController,
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
                   FlatButton(
                     onPressed: () {
-                      firestore.collection('messages').document().setData({
-                        'sender': user.email,
-                        'message': message
-                      });
-
+                      messageTextController.clear();
+                      firestore.collection('messages').add({'sender': user.email, 'message': message});
                       setState(() {
                         message = "";
                       });
@@ -107,6 +89,68 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessageStream extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: firestore.collection('messages').snapshots(),
+      builder: (context, snapshot) {
+        List<Widget> messagesWidget = [];
+        if (snapshot.hasData) {
+          final messages = snapshot.data.documents;
+          for (var message in messages) {
+            messagesWidget.add(MessageBubble(
+              text: message.data["message"],
+              sender: message.data["sender"],
+            ));
+          }
+        }
+        return Expanded(
+          child: ListView(
+            children: messagesWidget,
+          ),
+        );
+      },
+    );
+  }
+}
+
+
+class MessageBubble extends StatelessWidget {
+  MessageBubble({@required this.text, @required this.sender});
+
+  final String text;
+  final String sender;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Text(
+            sender,
+            style: TextStyle(fontSize: 12.0, color: Colors.black54),
+          ),
+          Material(
+            color: Colors.lightBlueAccent,
+            borderRadius: BorderRadius.circular(30.0),
+            elevation: 5.0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              child: Text(
+                text,
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
