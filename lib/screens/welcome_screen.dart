@@ -12,8 +12,7 @@ class WelcomeScreen extends StatefulWidget {
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen>
-    with TickerProviderStateMixin {
+class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin {
   AnimationController controller;
   Animation colorAnimation;
 
